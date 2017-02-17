@@ -7,7 +7,10 @@ setup(name='jetscrape',
       author='Gareth Evans',
       author_email='evans.g.p@gmail.com',
       packages=['jetscrape'],
-      zip_safe=False,
+      zip_safe=True,
       entry_points={
           'console_scripts': ['jetscrape=jetscrape.command_line:main']
-      })
+      },
+      install_requires=[
+          'requests',
+      ])

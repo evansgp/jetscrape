@@ -1,5 +1,2 @@
-import jetscrape
-
-
 def main():
-    print('dongs')
+    print('test')
