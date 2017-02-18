@@ -11,11 +11,12 @@ class Configuration:
     def __init__(self, username, password):
         self.username = username
         self.password = password
+        # herp
         global configuration
         configuration = self
 
     @property
-    @lru_cache(maxsize=1)
+    @lru_cache()
     def session(self):
         logger.debug('creating session')
         session = requests.Session()
@@ -32,7 +33,7 @@ class Getable:
         logger.debug('getting %s to serialise into %s for %s with %s', url, cls, path, params)
         request = configuration.session.get(url, params=params)
         request.raise_for_status()
-        return list(map(lambda a: cls(a), cls.list_path(request.json())))
+        return list(map(lambda a: cls(a), path(request.json())))
 
 
 class Listable(Getable):
@@ -50,13 +51,11 @@ class Account(Listable):
 
     list_url = 'https://www.access-online.com.au/white/api/channel/account/v3s/accounts-facilities'
 
+    @staticmethod
+    def list_path(d): return d['data'][0]['accounts']
+
     def __init__(self, data):
         self.id = data['id']
-
-    # TODO better way to define this?
-    @classmethod
-    def list_path(cls, json):
-        return json['data'][0]['accounts']
 
     @property
     @lru_cache()
@@ -68,12 +67,12 @@ class Transaction(Listable):
 
     list_url = 'https://www.access-online.com.au/white/api/channel/transaction/v3s/transactions'
 
+    @staticmethod
+    def list_path(d): return d['data']
+
     def __init__(self, data):
         self.amount = data['amount']
         self.date = data['transactionDate']
         self.description = data['description']
         self.debit = data['crDrCode'] == 'DR'
 
-    @classmethod
-    def list_path(cls, json):
-        return json['data']
