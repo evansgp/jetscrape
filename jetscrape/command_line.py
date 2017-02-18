@@ -1,6 +1,6 @@
 import logging
 import argparse
-from jetscrape import Configuration, Account
+from jetscrape import Account, auth, jsonclient
 
 
 logger = logging.getLogger(__name__)
@@ -10,7 +10,7 @@ def main():
     args = process_command_line()
     logging.basicConfig(level=args.level)
     logger.debug('running with arguements: %s', args)
-    Configuration(args.username, args.password)
+    jsonclient.authenticator = auth(args.username, args.password)
     for account in Account.list():
         logger.info('got account: %s', account)
         for transaction in account.transactions:

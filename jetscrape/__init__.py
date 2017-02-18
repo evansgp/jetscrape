@@ -1,2 +1,2 @@
-from jetscrape.jetscrape import Account, Configuration, configuration
-
+from jetscrape.jetscrape import Account, auth
+from jetscrape import jsonclient
