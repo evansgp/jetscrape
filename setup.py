@@ -12,5 +12,5 @@ setup(name='jetscrape',
           'console_scripts': ['jetscrape=jetscrape.command_line:main']
       },
       install_requires=[
-          'requests',
+          'requests', 'logging',
       ])
