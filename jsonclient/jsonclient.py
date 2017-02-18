@@ -12,11 +12,6 @@ pager = None
 def session():
     logger.debug('creating session')
     new_session = requests.Session()
-
-    print('tits')
-    print(jsonclient.authenticator)
-    print(jsonclient.pager)
-
     if jsonclient.authenticator is not None:
         request = jsonclient.authenticator(new_session)
         request.raise_for_status()
