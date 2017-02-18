@@ -1,2 +1,1 @@
-from jetscrape.jetscrape import Account, auth
-from jetscrape import jsonclient
+from jetscrape.jetscrape import Account, Transaction, auth, pager

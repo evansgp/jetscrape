@@ -1,17 +1,25 @@
 import logging
 import requests
+import jsonclient
 from functools import lru_cache
 
 logger = logging.getLogger(__name__)
 authenticator = None
+pager = None
 
 
 @lru_cache()
 def session():
     logger.debug('creating session')
     new_session = requests.Session()
-    request = authenticator(new_session)
-    request.raise_for_status()
+
+    print('tits')
+    print(jsonclient.authenticator)
+    print(jsonclient.pager)
+
+    if jsonclient.authenticator is not None:
+        request = jsonclient.authenticator(new_session)
+        request.raise_for_status()
     return new_session
 
 
@@ -28,9 +36,11 @@ class Getable:
 class Listable(Getable):
 
     @classmethod
-    def list(cls, params=None):
-        logger.debug('listing for %s with %s', cls, params)
-        # TODO add paging into an infinite generator...
-        results = super().get(cls.list_url, cls.list_path, params)
-        for result in results:
-            yield result
+    def list(cls, params={}):
+        while True:
+            if jsonclient.pager is not None:
+                jsonclient.pager(params)
+            logger.debug('listing for %s with %s', cls, params)
+            results = super().get(cls.list_url, cls.list_path, params)
+            for result in results:
+                yield result
