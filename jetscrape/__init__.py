@@ -1,2 +1,2 @@
-from jetscrape.jetscrape import Account, Configuration
+from jetscrape.jetscrape import Account, Configuration, configuration
 

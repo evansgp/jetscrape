@@ -1,6 +1,6 @@
-from jetscrape import Configuration, Account
 import logging
 import argparse
+from jetscrape import Configuration, Account
 
 
 logger = logging.getLogger(__name__)
@@ -9,17 +9,20 @@ logger = logging.getLogger(__name__)
 def main():
     args = process_command_line()
     logging.basicConfig(level=args.level)
-    Configuration.configure(args.username, args.password)
+    logger.debug('running with arguements: %s', args)
+    Configuration(args.username, args.password)
     for account in Account.list():
-        print(account.data)
+        logger.info('got account: %s', account)
+        for transaction in account.transactions:
+            logger.info('got transaction: {txn.date} {txn.description} {txn.amount} {txn.debit}'.format(txn=transaction))
     return 0
 
 
 def process_command_line():
     parser = argparse.ArgumentParser(description='Download Jetstar (AU) CC data')
-    parser.add_argument('-u', '--username', required=True, help='username to connect with')
-    parser.add_argument('-p', '--password', required=True, help='password to connect with')
     parser.add_argument('-v', dest='level', action='store_const', const=logging.DEBUG, default=logging.INFO,
                         help='verbose output')
+    parser.add_argument('-u', '--username', required=True, help='username to connect with')
+    parser.add_argument('-p', '--password', required=True, help='password to connect with')
     return parser.parse_args()
 

@@ -1,39 +1,79 @@
 import requests
+import logging
+from functools import lru_cache
+
+configuration = None
+logger = logging.getLogger(__name__)
 
 
 class Configuration:
 
-    session = None
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+        global configuration
+        configuration = self
 
-    @staticmethod
-    def configure(username, password):
-        Configuration.session = Configuration.create_session(password, username)
-
-    @staticmethod
-    def create_session(password, username):
+    @property
+    @lru_cache(maxsize=1)
+    def session(self):
+        logger.debug('creating session')
         session = requests.Session()
-        params = {'username': username, 'password': password, 'login-form-type': 'pwd'}
+        params = {'username': self.username, 'password': self.password, 'login-form-type': 'pwd'}
         request = session.post('https://www.access-online.com.au/pkmslogin.form', data=params)
         request.raise_for_status()
         return session
 
 
-class Account:
+class Getable:
 
-    url_list = 'https://www.access-online.com.au/white/api/channel/account/v3s/accounts-facilities'
+    @classmethod
+    def get(cls, url, path, params=None):
+        logger.debug('getting %s to serialise into %s for %s with %s', url, cls, path, params)
+        request = configuration.session.get(url, params=params)
+        request.raise_for_status()
+        return list(map(lambda a: cls(a), cls.list_path(request.json())))
+
+
+class Listable(Getable):
+
+    @classmethod
+    def list(cls, params=None):
+        logger.debug('listing for %s with %s', cls, params)
+        # TODO add paging into an infinite generator...
+        results = super().get(cls.list_url, cls.list_path, params)
+        for result in results:
+            yield result
+
+
+class Account(Listable):
+
+    list_url = 'https://www.access-online.com.au/white/api/channel/account/v3s/accounts-facilities'
 
     def __init__(self, data):
-        self.data = data
+        self.id = data['id']
 
-    @staticmethod
-    def list():
-        accounts = Account.get(Account.url_list, Account, lambda d: d['data'][0]['accounts'])
-        for account in accounts:
-            yield account
+    # TODO better way to define this?
+    @classmethod
+    def list_path(cls, json):
+        return json['data'][0]['accounts']
 
-    @staticmethod
-    def get(url, clazz, path):
-        request = Configuration.session.get(url)
-        request.raise_for_status()
-        return list(map(lambda a: clazz(a), path(request.json())))
+    @property
+    @lru_cache()
+    def transactions(self):
+        return Transaction.list({'account-id': self.id})
 
+
+class Transaction(Listable):
+
+    list_url = 'https://www.access-online.com.au/white/api/channel/transaction/v3s/transactions'
+
+    def __init__(self, data):
+        self.amount = data['amount']
+        self.date = data['transactionDate']
+        self.description = data['description']
+        self.debit = data['crDrCode'] == 'DR'
+
+    @classmethod
+    def list_path(cls, json):
+        return json['data']
