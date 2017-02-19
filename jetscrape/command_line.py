@@ -13,15 +13,12 @@ def main():
     args = process_command_line()
     logging.basicConfig(level=args.level)
     jsonclient.authenticator = jetscrape.auth(args.username, args.password)
-    jsonclient.pager = jetscrape.pager
     target = datetime.date.today() - datetime.timedelta(days=args.days)
-    logger.info('target date is {}'.format(target))
-    accounts = jetscrape.Account.list()
     writer = csv.writer(args.file)
-    for account in accounts:
+    writer.writerow(['Transaction Date', 'Description', 'Type', 'Amount'])
+    for account in jetscrape.Account.list():
         for txn in account.transactions:
             if txn.date < target:
-                logger.info('hit target with {}'.format(txn.date))
                 break
             writer.writerow(to_row(txn))
 
@@ -43,7 +40,7 @@ def process_command_line():
                         help='verbose output')
     parser.add_argument('-u', '--username', required=True, help='username to connect with')
     parser.add_argument('-p', '--password', required=True, help='password to connect with')
-    parser.add_argument('-d', '--days', default=31, help='the number of days to process')
+    parser.add_argument('-d', '--days', default=31, type=int, help='the number of days to process')
     parser.add_argument('-f', '--file', default=sys.stdout, type=argparse.FileType('w'), help='where to direct output')
     return parser.parse_args()
 

@@ -1,6 +1,6 @@
 import logging
 import jsonclient
-from functools import lru_cache
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -10,14 +10,18 @@ def auth(username, password):
     return lambda session: session.post('https://www.access-online.com.au/pkmslogin.form', data=params)
 
 
-def pager(params):
-    limit = params.get('limit')
-    offset = params.get('offset')
-    if offset is None:
-        params['limit'] = 100
-        params['offset'] = 0
-    else:
-        params['offset'] = int(limit) + int(offset)
+class Paged:
+
+    @classmethod
+    def get_page(cls, response):
+        limit = response.get('limit', None)
+        offset = response.get('offset', None)
+        return int(limit or 100), int(offset or 0)
+
+    @classmethod
+    def set_page(cls, request, limit, offset):
+        request['limit'] = limit
+        request['offset'] = offset
 
 
 class Account(jsonclient.Listable):
@@ -31,12 +35,11 @@ class Account(jsonclient.Listable):
         self.id = data['id']
 
     @property
-    @lru_cache()
     def transactions(self):
         return Transaction.list({'account-id': self.id})
 
 
-class Transaction(jsonclient.Listable):
+class Transaction(Paged, jsonclient.PagedListable):
 
     list_url = 'https://www.access-online.com.au/white/api/channel/transaction/v3s/transactions'
 
@@ -45,7 +48,7 @@ class Transaction(jsonclient.Listable):
 
     def __init__(self, data):
         self.amount = data['amount']
-        self.date = data['transactionDate']
+        self.date = datetime.strptime(data['transactionDate'], '%Y-%m-%d').date()
         self.description = data['description']
         self.debit = data['crDrCode'] == 'DR'
 

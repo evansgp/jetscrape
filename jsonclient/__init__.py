@@ -1,1 +1,1 @@
-from jsonclient.jsonclient import Listable, authenticator, pager
+from jsonclient.jsonclient import Listable, PagedListable, authenticator

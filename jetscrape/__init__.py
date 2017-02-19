@@ -1,1 +1,1 @@
-from jetscrape.jetscrape import Account, Transaction, auth, pager
+from jetscrape.jetscrape import Account, Transaction, auth
