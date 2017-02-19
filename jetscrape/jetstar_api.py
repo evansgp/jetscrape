@@ -1,5 +1,5 @@
 import logging
-import jsonclient
+import json_client
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 def auth(username, password):
     params = {'username': username, 'password': password, 'login-form-type': 'pwd'}
-    return lambda session: session.post('https://www.access-online.com.au/pkmslogin.form', data=params)
+    json_client.authenticator = lambda s: s.post('https://www.access-online.com.au/pkmslogin.form', data=params)
 
 
 class Paged:
@@ -24,7 +24,7 @@ class Paged:
         request['offset'] = offset
 
 
-class Account(jsonclient.Listable):
+class Account(json_client.Listable):
 
     list_url = 'https://www.access-online.com.au/white/api/channel/account/v3s/accounts-facilities'
 
@@ -39,7 +39,7 @@ class Account(jsonclient.Listable):
         return Transaction.list({'account-id': self.id})
 
 
-class Transaction(Paged, jsonclient.PagedListable):
+class Transaction(Paged, json_client.PagedListable):
 
     list_url = 'https://www.access-online.com.au/white/api/channel/transaction/v3s/transactions'
 

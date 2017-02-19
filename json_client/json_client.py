@@ -1,6 +1,6 @@
 import logging
 import requests
-import jsonclient
+import json_client
 from functools import lru_cache
 
 logger = logging.getLogger(__name__)
@@ -11,9 +11,9 @@ authenticator = None
 def session():
     logger.debug('creating session')
     new_session = requests.Session()
-    if jsonclient.authenticator is not None:
+    if json_client.authenticator is not None:
         logger.debug('authing')
-        request = jsonclient.authenticator(new_session)
+        request = json_client.authenticator(new_session)
         request.raise_for_status()
         logger.debug('authed')
     return new_session

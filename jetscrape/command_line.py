@@ -1,10 +1,9 @@
+import sys
 import argparse
 import logging
-import jetscrape
-import jsonclient
-import csv
-import sys
 import datetime
+import csv
+from jetscrape import jetstar_api
 
 logger = logging.getLogger(__name__)
 
@@ -12,11 +11,11 @@ logger = logging.getLogger(__name__)
 def main():
     args = process_command_line()
     logging.basicConfig(level=args.level)
-    jsonclient.authenticator = jetscrape.auth(args.username, args.password)
+    jetstar_api.auth(args.username, args.password)
     target = datetime.date.today() - datetime.timedelta(days=args.days)
     writer = csv.writer(args.file)
     writer.writerow(['Transaction Date', 'Description', 'Type', 'Amount'])
-    for account in jetscrape.Account.list():
+    for account in jetstar_api.Account.list():
         for txn in account.transactions:
             if txn.date < target:
                 break
