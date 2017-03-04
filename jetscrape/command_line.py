@@ -14,7 +14,7 @@ def main():
     jetstar_api.auth(args.username, args.password)
     target = datetime.date.today() - datetime.timedelta(days=args.days)
     writer = csv.writer(args.file)
-    writer.writerow(['Transaction Date', 'Description', 'Type', 'Amount'])
+    writer.writerow(['Transaction Date', 'Description', 'Debit', 'Credit'])
     for account in jetstar_api.Account.list():
         for txn in account.transactions:
             if txn.date < target:
@@ -28,8 +28,8 @@ def to_row(txn):
     return [
         txn.date.strftime('%d %b %Y'),
         txn.description,
-        "DR" if txn.debit else "CR",
-        txn.amount
+        txn.amount if txn.debit else '',
+        txn.amount if not txn.debit else '',
     ]
 
 
@@ -42,4 +42,3 @@ def process_command_line():
     parser.add_argument('-d', '--days', default=31, type=int, help='the number of days to process')
     parser.add_argument('-f', '--file', default=sys.stdout, type=argparse.FileType('w'), help='where to direct output')
     return parser.parse_args()
-
